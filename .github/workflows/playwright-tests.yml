@@ -1,0 +1,85 @@
+name: Playwright Automation CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1️⃣ Checkout code
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # 2️⃣ Setup Java
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      # 3️⃣ Setup Maven
+      - name: Setup Maven
+        uses: stCarolas/setup-maven@v4
+        with:
+          maven-version: '3.9.6'
+
+      # 4️⃣ Setup Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+
+      # 5️⃣ Cache Maven dependencies
+      - name: Cache Maven repo
+        uses: actions/cache@v3
+        with:
+          path: ~/.m2/repository
+          key: maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: maven-
+
+      # 6️⃣ Install Playwright browsers
+      - name: Install Playwright Browsers
+        run: mvn exec:java -e \
+          -Dexec.mainClass=com.microsoft.playwright.CLI \
+          -Dexec.args="install"
+
+      # 7️⃣ Run tests
+      - name: Run Playwright Tests
+        run: mvn clean test
+
+      # 8️⃣ Install Allure
+      - name: Install Allure
+        run: |
+          npm install -g allure-commandline
+
+      # 9️⃣ Generate Allure Report
+      - name: Generate Allure Report
+        run: |
+          allure generate target/allure-results -o target/allure-report --clean
+
+      # 🔟 Upload Allure Report
+      - name: Upload Allure Report
+        uses: actions/upload-artifact@v3
+        with:
+          name: allure-report
+          path: target/allure-report
+
+      # 🚀 Deploy to GitHub Pages
+      - name: Deploy Allure to GitHub Pages
+        if: always()
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: target/allure-report
+
+
+      # 📦 Archive Playwright trace files
+      - name: Upload Playwright Traces
+        if: always()   # runs even if tests fail
+        uses: actions/upload-artifact@v3
+        with:
+          name: playwright-traces
+          path: target/traces/*.zip
