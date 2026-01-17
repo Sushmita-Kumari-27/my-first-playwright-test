@@ -46,9 +46,8 @@ jobs:
 
       # 6️⃣ Install Playwright browsers
       - name: Install Playwright Browsers
-        run: mvn exec:java -e \
-          -Dexec.mainClass=com.microsoft.playwright.CLI \
-          -Dexec.args="install"
+        run: mvn exec:java -Dexec.mainClass=com.microsoft.playwright.CLI -Dexec.args="install"
+
 
       # 7️⃣ Run tests
       - name: Run Playwright Tests
