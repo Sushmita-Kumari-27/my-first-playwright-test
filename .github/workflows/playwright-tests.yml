@@ -45,8 +45,8 @@ jobs:
           restore-keys: maven-
 
       # 6️⃣ Install Playwright browsers
-      - name: Install Playwright Browsers
-        run: mvn exec:java -Dexec.mainClass=com.microsoft.playwright.CLI -Dexec.args="install"
+      - name: Run Playwright Tests
+        run: mvn clean test
 
 
       # 7️⃣ Run tests
